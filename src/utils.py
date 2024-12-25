@@ -25,7 +25,7 @@ def _divmod(num,denom,prime):
     inv = inv % prime
     return (num * inv) % prime
 
-def _lagrange_interpolation(threshold,x_eval,x_s,y_s,prime):
+def _lagrange_interpolation_evaluate_at_x(threshold,x_eval,x_s,y_s,prime):
     """
         Given threshold number of points, and (x,y) coordinates stored in x_s and y_s
         respectively, this function uses Lagrange interpolation to find the value of the polynomial
@@ -42,3 +42,45 @@ def _lagrange_interpolation(threshold,x_eval,x_s,y_s,prime):
     for i in range(len(lagrange_basis_polynomials)):
         f_at_x_eval += y_s[i]*lagrange_basis_polynomials[i]
     return f_at_x_eval % prime
+
+def _polynomial_multiply(poly1, poly2, prime):
+    """
+        Multiply two polynomials with coefficients in modulo prime
+    """
+    result = [0] * (len(poly1) + len(poly2) - 1)
+    for i in range(len(poly1)):
+        for j in range(len(poly2)):
+            result[i + j] = (result[i + j] + poly1[i] * poly2[j]) % prime
+    return result
+
+def _lagrange_interpolation(threshold, x_s, y_s, prime):
+    """
+        Generates the polynomial with x_s and y_s, with coefficients in modulo prime
+    """
+    result = [0] * threshold
+    for i in range(threshold):
+        denoms = [(x_s[i] - x_s[j]) % prime for j in range(threshold) if j != i]
+        denom_product = functools.reduce(lambda x, y: (x * y) % prime, denoms)
+        current_poly = [1]
+        for j in range(threshold):
+            if j != i:
+                term = [(-x_s[j]) % prime, 1]
+                current_poly = _polynomial_multiply(current_poly, term, prime)
+        scale_factor = _divmod(y_s[i], denom_product, prime)
+        current_poly = [(coeff * scale_factor) % prime for coeff in current_poly]
+        for j in range(len(current_poly)):
+            result[j] = (result[j] + current_poly[j]) % prime
+    print("\nRecovered polynomial:")
+    coeffs = []
+    for i in range(len(result)-1, -1, -1):
+        if result[i] != 0:
+            if i == 0:
+                coeffs.append(str(result[i]))
+            elif i == 1:
+                coeffs.append(f"{result[i]}x")
+            else:
+                coeffs.append(f"{result[i]}x^{i}")
+    print(" ".join(coeffs))
+    
+    return result
+    

@@ -22,9 +22,14 @@ class Shamir:
         """
             Split the secret into shares
         """
+        print("\nprime:",self.prime)
         if self.threshold > self.num_shares:
             raise ValueError("The pool secret will be irrecoverable, increase threshold")
         poly = [secret] + [self._RINT(self.prime-1) for i in range(self.threshold - 1)]
+        print("\npolynomial of degree threshold-1 generated:")
+        for i in range(len(poly)-1,-1,-1):
+            print(str(poly[i]%self.prime) + 'x^' + str(i),end=" ")
+        print()
         points = [(i,self.eval_poly(poly,i,self.prime)) for i in range(1,self.num_shares + 1)]
         return points
     
@@ -35,4 +40,5 @@ class Shamir:
         if len(shares) < self.threshold:
             raise ValueError(f"need at least {self.threshold} shares")
         x_s,y_s = zip(*shares)
-        return utils._lagrange_interpolation(self.threshold,0,x_s,y_s,self.prime)
+        utils._lagrange_interpolation(self.threshold,x_s,y_s,self.prime)
+        return utils._lagrange_interpolation_evaluate_at_x(self.threshold,0,x_s,y_s,self.prime)

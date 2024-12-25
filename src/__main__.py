@@ -12,6 +12,8 @@ if __name__ == "__main__":
     shamir = Shamir(num_shares=num_shares,threshold=threshold)
     shares = shamir.split_secret(secret)
     # print(f"shares: {shares}")
-    # randomly select threshold number of shares
     shares_come_together = random.sample(shares,threshold)
-    print(f"recovered Secret: {shamir.recover_secret(shares_come_together)}")
+    print("\nshares used for secret recovery:")
+    print(shares_come_together)
+
+    print(f"\nrecovered secret: {shamir.recover_secret(shares_come_together)}")
