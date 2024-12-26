@@ -33,12 +33,42 @@ class Shamir:
         points = [(i,self.eval_poly(poly,i,self.prime)) for i in range(1,self.num_shares + 1)]
         return points
     
-    def recover_secret(self,shares):
+    def recover_secret(self,shares,threshold):
         """
             Recover the secret from the shares
         """
-        if len(shares) < self.threshold:
-            raise ValueError(f"need at least {self.threshold} shares")
+        if len(shares) < threshold:
+            raise ValueError(f"need at least {threshold} shares")
+        x_s,y_s = zip(*shares)
+        utils._lagrange_interpolation(threshold,x_s,y_s,self.prime)
+        return utils._lagrange_interpolation_evaluate_at_x(threshold,0,x_s,y_s,self.prime)
+    
+    def show_polynomial(self,shares):
+        """
+            Show the polynomial from the shares
+        """
         x_s,y_s = zip(*shares)
         utils._lagrange_interpolation(self.threshold,x_s,y_s,self.prime)
-        return utils._lagrange_interpolation_evaluate_at_x(self.threshold,0,x_s,y_s,self.prime)
+
+class Operations:
+    def add_shares(self,shares1,shares2,prime):
+        """
+            Add two shares from two polynomials and get the shares of the sum
+        """
+        shares = []
+        for i in range(min(len(shares1),len(shares2))):
+            shares.append((shares1[i][0],(shares1[i][1] + shares2[i][1]) % prime))
+        return shares
+    
+    def add_public(self,shares,public_value,prime):
+        """
+            Add a public value to the shares
+        """
+        return [(share[0],share[1] + public_value % prime) for share in shares]
+    
+    def multiply_public(self,shares,public_value,prime):
+        """
+            Multiply a public value with the shares
+        """
+
+        return [(share[0],share[1] * public_value % prime) for share in shares]

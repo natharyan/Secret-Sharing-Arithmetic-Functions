@@ -7,7 +7,6 @@ def _extended_gcd(a,b):
         returns (inv,m)
     """
     x,y, u,v = 0,1, 1,0
-
     while b!=0:
         q = a//b
         a,b = b,a%b
@@ -70,7 +69,7 @@ def _lagrange_interpolation(threshold, x_s, y_s, prime):
         current_poly = [(coeff * scale_factor) % prime for coeff in current_poly]
         for j in range(len(current_poly)):
             result[j] = (result[j] + current_poly[j]) % prime
-    print("\nRecovered polynomial:")
+    print("\nretrieved polynomial:")
     coeffs = []
     for i in range(len(result)-1, -1, -1):
         if result[i] != 0:
@@ -81,6 +80,5 @@ def _lagrange_interpolation(threshold, x_s, y_s, prime):
             else:
                 coeffs.append(f"{result[i]}x^{i}")
     print(" ".join(coeffs))
-    
     return result
     
