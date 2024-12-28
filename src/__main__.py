@@ -65,5 +65,9 @@ if __name__ == "__main__":
     print(f"\nPolynomial with multiplied public value {public_value}:")
     print(f"\nRetrieved secret: {shamir1.recover_secret(shares_multiplied_with_public,threshold1)}")
 
-    print("\n-----------------multiplication of two sets of shares-----------------")
-    
+    print("\n-----------------multiplication of two sets of shares using beaver triple-----------------")
+    shares_mult_x_y = operations.beaver_triple(shares,shares1,shamir2)
+    xy = shamir2.recover_secret(shares_mult_x_y,shamir2.threshold)
+    print("xy:",xy)
+
+    # TODO: compute arbitrary functions of the two secret values

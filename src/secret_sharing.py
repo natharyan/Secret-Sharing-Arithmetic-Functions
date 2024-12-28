@@ -22,7 +22,7 @@ class Shamir:
         """
             Split the secret into shares
         """
-        print("\nprime:",self.prime)
+        # print("\nprime:",self.prime)
         if self.threshold > self.num_shares:
             raise ValueError("The pool secret will be irrecoverable, increase threshold")
         poly = [secret] + [self._RINT(self.prime-1) for i in range(self.threshold - 1)]
@@ -72,3 +72,24 @@ class Operations:
         """
 
         return [(share[0],share[1] * public_value % prime) for share in shares]
+    
+    def beaver_triple(self,shares1,shares2,shamir):
+        """
+            Multiply two sets of shares using beaver triple without revealing x and y
+        """
+        _RINT_exc_0 = functools.partial(random.SystemRandom().randint, 1)
+        a = _RINT_exc_0(shamir.prime-1)
+        b = _RINT_exc_0(shamir.prime-1)
+        c = (a*b) % shamir.prime
+        x_a = (shamir.recover_secret(shares1,shamir.threshold) + a) % shamir.prime
+        y_b = (shamir.recover_secret(shares2,shamir.threshold) + b) % shamir.prime
+        shares_a = shamir.split_secret(a)
+        shares_b = shamir.split_secret(b)
+        shares_ab = shamir.split_secret(c)
+        operations = Operations()
+        neg_x_a_b_shares = operations.multiply_public(shares_b,-x_a,shamir.prime)
+        neg_y_b_a_shares = operations.multiply_public(shares_a,-y_b,shamir.prime)
+        add_shares = operations.add_shares(neg_x_a_b_shares,neg_y_b_a_shares,shamir.prime)
+        add_shares_ab = operations.add_shares(add_shares,shares_ab,shamir.prime)
+        add_public = operations.add_public(add_shares_ab,x_a*y_b,shamir.prime)
+        return add_public
