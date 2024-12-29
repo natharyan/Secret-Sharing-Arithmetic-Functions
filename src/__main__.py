@@ -186,9 +186,11 @@ root = build_parsetree(expression)
 
 result = evaluate_tree(root)
 
-print("Result: ",result)
+print("-> Result Shares: ",result)
 
 shamir_result = Shamir(num_shares=min(num_sharesx,num_sharesy),threshold=max(thresholdx,thresholdy))
 computed_secret = shamir_result.recover_secret(result,max(thresholdx,thresholdy))
-
-print("Computed Secret: ",computed_secret)
+poly = shamir_result.show_polynomial(result)
+print()
+print("-> Polynomial retrieved from the shares f(z) =",poly)
+print("-> Computed Secret f(0) =",computed_secret)

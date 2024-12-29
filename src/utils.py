@@ -73,11 +73,7 @@ def _lagrange_interpolation(threshold, x_s, y_s, prime):
     coeffs = []
     for i in range(len(result)-1, -1, -1):
         if result[i] != 0:
-            if i == 0:
-                coeffs.append(str(result[i]))
-            elif i == 1:
-                coeffs.append(f"{result[i]}x")
-            else:
-                coeffs.append(f"{result[i]}x^{i}")
+            coeffs.append(f"{result[i]}z^{i}")
     # print(" ".join(coeffs))
-    return result
+    polynomial = " + ".join(coeffs)
+    return polynomial

@@ -48,7 +48,7 @@ class Shamir:
             Show the polynomial from the shares
         """
         x_s,y_s = zip(*shares)
-        utils._lagrange_interpolation(self.threshold,x_s,y_s,self.prime)
+        return utils._lagrange_interpolation(self.threshold,x_s,y_s,self.prime)
 
 class Operations:
     def add_shares(self,shares1,shares2,prime):
