@@ -40,7 +40,7 @@ class Shamir:
         if len(shares) < threshold:
             raise ValueError(f"need at least {threshold} shares")
         x_s,y_s = zip(*shares)
-        utils._lagrange_interpolation(threshold,x_s,y_s,self.prime)
+        poly = utils._lagrange_interpolation(threshold,x_s,y_s,self.prime)
         return utils._lagrange_interpolation_evaluate_at_x(threshold,0,x_s,y_s,self.prime)
     
     def show_polynomial(self,shares):
@@ -73,10 +73,11 @@ class Operations:
 
         return [(share[0],share[1] * public_value % prime) for share in shares]
     
-    def beaver_triple(self,shares1,shares2,shamir):
+    def beaver_triple(self,shares1,shares2,num_shares,threshold):
         """
             Multiply two sets of shares using beaver triple without revealing x and y
         """
+        shamir = Shamir(num_shares,threshold)
         _RINT_exc_0 = functools.partial(random.SystemRandom().randint, 1)
         a = _RINT_exc_0(shamir.prime-1)
         b = _RINT_exc_0(shamir.prime-1)

@@ -69,7 +69,7 @@ def _lagrange_interpolation(threshold, x_s, y_s, prime):
         current_poly = [(coeff * scale_factor) % prime for coeff in current_poly]
         for j in range(len(current_poly)):
             result[j] = (result[j] + current_poly[j]) % prime
-    print("\nretrieved polynomial:")
+    # print("\nretrieved polynomial:")
     coeffs = []
     for i in range(len(result)-1, -1, -1):
         if result[i] != 0:
@@ -79,6 +79,5 @@ def _lagrange_interpolation(threshold, x_s, y_s, prime):
                 coeffs.append(f"{result[i]}x")
             else:
                 coeffs.append(f"{result[i]}x^{i}")
-    print(" ".join(coeffs))
+    # print(" ".join(coeffs))
     return result
-    

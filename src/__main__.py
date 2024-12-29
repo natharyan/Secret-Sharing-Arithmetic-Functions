@@ -66,8 +66,14 @@ if __name__ == "__main__":
     print(f"\nRetrieved secret: {shamir1.recover_secret(shares_multiplied_with_public,threshold1)}")
 
     print("\n-----------------multiplication of two sets of shares using beaver triple-----------------")
-    shares_mult_x_y = operations.beaver_triple(shares,shares1,shamir2)
+    shares_mult_x_y = operations.beaver_triple(shares,shares1,shamir2.num_shares,shamir2.threshold,)
     xy = shamir2.recover_secret(shares_mult_x_y,shamir2.threshold)
     print("xy:",xy)
 
     # TODO: compute arbitrary functions of the two secret values
+    # operations: add, subtract and multiply with a public value, add and multiple two secret values
+
+    # 1. parse the string to create an operator precedence tree
+    # 2. evaluate the tree using the secrets
+    # 3. generate shares for the result
+    # 4. recover the result using the shares
