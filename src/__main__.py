@@ -1,79 +1,194 @@
-from secret_sharing import Shamir, Operations
-import random
+from secret_sharing import Operations, Shamir
 
-if __name__ == "__main__":
-    print("\n-----------------secret sharing using Shamir's secret sharing scheme-----------------")
-    secret = 5604
-    num_shares = int(input("enter number of shares: "))
-    threshold = input("enter threshold (enter for def): ")
-    if not threshold:
-        threshold = 2
-    else:
-        threshold = int(threshold)
-    shamir = Shamir(num_shares=num_shares,threshold=threshold)
-    shares = shamir.split_secret(secret)
-    print(f"\nshares generated: \n{shares}")
-    shares_come_together = random.sample(shares,threshold)
-    # print("\nshares used for secret recovery:")
-    # print(shares_come_together)
+operators = ['+','-','*','^']
+secretvars = ['x','y']
+parenthesis = ['(',')']
 
-    print(f"\nrecovered secret: {shamir.recover_secret(shares_come_together,threshold)}")
+operations = Operations()
 
-    secret1 = 7706
-    num_shares1 = int(input("\nenter number of shares: ")) 
-    threshold1 = input("enter threshold (enter for def): ")
-    if not threshold1:
-        threshold1 = 2
-    else:
-        threshold1 = int(threshold1)
-    shamir1 = Shamir(num_shares=num_shares1,threshold=threshold1)
-    shares1 = shamir1.split_secret(secret1)
-    print(f"\nshares generated: \n{shares1}")
+q = 127
+prime = 2**q - 1
+
+thresholdx = 0
+thresholdy = 0
+sharesx = []
+sharesy = []
+
+shares_dict = {'x':sharesx,'y':sharesy}
+
+class Node:
+    def __init__(self, value):
+        self.value = value # operator value
+        self.left = None
+        self.right = None
+
+def shunting_yard_postfix(infix):
+    precedence = {'+':1,'-':1,'*':2,'^':3}
+    stack = []
+    postfix = []
+    for token in infix:
+        if token in operators:
+            while stack and precedence.get(stack[-1],0) >= precedence.get(token,0):
+                postfix.append(stack.pop())
+            stack.append(token)
+        elif token == '(':
+            stack.append(token)
+        elif token == ')':
+            while stack and stack[-1] != '(':
+                postfix.append(stack.pop())
+            stack.pop()
+        else:
+            postfix.append(token)
+    while stack:
+        if stack[-1] in ['(',')']:
+            raise ValueError("mismatched parenthesis")
+        postfix.append(stack.pop())
+    return postfix
+
+def build_parsetree(expression):
+    print("thresholdx:",thresholdx)
+    print("thresholdy:",thresholdy)
+    expression = expression.replace(" ","")
+    tokens = list(expression)
+    i = 0
+    while i < len(tokens):
+        if i!=len(tokens)-1 and tokens[i] not in operators+['('] and tokens[i+1] not in operators+[')']:
+            tokens.insert(i+1,'*')
+        i += 1
+    print("Infix:",tokens)
+    if all(token not in operators for token in tokens):
+        raise ValueError("no operators in the expression")
+    postfix = shunting_yard_postfix(tokens)
+    print("Postfix:",postfix)
+    stack = []
+    for i in range(len(postfix)):
+        if postfix[i] not in operators:
+            stack.append(postfix[i])
+        else:
+            right = stack.pop()
+            left = stack.pop()
+
+            if right in secretvars:
+                right = shares_dict[right]
+            if left in secretvars:
+                left = shares_dict[left]
+            if type(right) == str and str.isdigit(right):
+                right = int(right)
+            if type(left) == str and str.isdigit(left):
+                left = int(left)
+            # print((left,right))
+            operator_parent = Node(postfix[i])
+            operator_parent.left = left
+            operator_parent.right = right
+            stack.append(operator_parent)
+    root = stack.pop()
+    return root
+
+def evaluate_tree(node):
+    # base case
+    if isinstance(node,int) or isinstance(node,list):
+        return node
     
-    # while defining the number of shares, make sure that the number of shares in both the shamir objects are greater than the maximum threshold
-    shamir2 = Shamir(num_shares=min(num_shares,num_shares1),threshold=max(threshold,threshold1))
+    left = evaluate_tree(node.left)
+    right = evaluate_tree(node.right)
 
-    # add shares
-    print("\n-----------------addition of shares-----------------")
-    threshold_add = max(threshold,threshold1)
-    print(f"\ngiven the polynomials:")
-    shamir.show_polynomial(shares)
-    shamir1.show_polynomial(shares1)
-    print()
-    operations = Operations()
-    shares_added = operations.add_shares(shares,shares1,shamir2.prime)
-    print("\nadded shares:")
-    print(shares_added)
-    # print("\nshares used for secret recovery:")
-    # print(random.sample(shares_added,threshold_add))
-    print(f"\nrecovered secret: {shamir2.recover_secret(shares_added,shamir2.threshold)}")
-
-    # addition of shares with a public value
-    print("\n-----------------addition of shares with public value-----------------")
-    print("\nOriginal Polynomial:")
-    shamir1.show_polynomial(shares1)
-    public_value = 100
-    shares_added_with_public = operations.add_public(shares1,public_value,shamir1.prime)
-    print(f"\nPolynomial with added public value {public_value}:")
-    print(f"\nRetrieved secret: {shamir1.recover_secret(shares_added_with_public,threshold1)}")
+    left_eval_secret = isinstance(left,list) and isinstance(right,int)
+    right_eval_secret = isinstance(left,int) and isinstance(right,list)
+    both_eval_secret = isinstance(left,list) and isinstance(right,list)
+    both_eval_public = isinstance(left,int) and isinstance(right,int)
     
-    print("\n-----------------multiplication of shares with public value-----------------")
-    print("\nOriginal Polynomial:")
-    shamir1.show_polynomial(shares1)
-    public_value = 120
-    shares_multiplied_with_public = operations.multiply_public(shares1,public_value,shamir1.prime)
-    print(f"\nPolynomial with multiplied public value {public_value}:")
-    print(f"\nRetrieved secret: {shamir1.recover_secret(shares_multiplied_with_public,threshold1)}")
+    if node.value == "+":
+        if left_eval_secret:
+            return operations.add_public(left,right,prime)
+        elif right_eval_secret:
+            return operations.add_public(right,left,prime)
+        elif both_eval_secret:
+            return operations.add_shares(left,right,prime)
+        elif both_eval_public:
+            return left + right
+    elif node.value == "-":
+        if left_eval_secret:
+            return operations.add_public(left,-right,prime)
+        elif right_eval_secret:
+            right = operations.multiply_public(right,-1,prime)
+            return operations.add_public(right,left,prime)
+        elif both_eval_secret:
+            right = operations.multiply_public(right,-1,prime)
+            return operations.add_shares(left,right,prime)
+        elif both_eval_public:
+            return left - right
+    elif node.value == "*":
+        if left_eval_secret:
+            return operations.multiply_public(left,right,prime)
+        elif right_eval_secret:
+            return operations.multiply_public(right,left,prime)
+        elif both_eval_secret:
+            return operations.beaver_triple(left,right,min(len(sharesx),len(sharesy)),max(thresholdx,thresholdy))
+        elif both_eval_public:
+            return left*right
+    # only for integral powers, can raise it to the power of a secret if there is a way to do so without revealing the secret itself
+    elif node.value == "^":
+        if not isinstance(right,int):
+            ValueError(f"cannot parse {left}^{right}")
+        elif isinstance(left,list):
+            expval_shar = left
+            for i in range(right-1):
+                expval_shar = operations.beaver_triple(expval_shar,left,min(len(sharesx),len(sharesy)),max(thresholdx,thresholdy))
+            return expval_shar
+        elif isinstance(left,int):
+            expval = left
+            for i in range(right - 1):
+                expval = expval*left
+            return expval
 
-    print("\n-----------------multiplication of two sets of shares using beaver triple-----------------")
-    shares_mult_x_y = operations.beaver_triple(shares,shares1,shamir2.num_shares,shamir2.threshold,)
-    xy = shamir2.recover_secret(shares_mult_x_y,shamir2.threshold)
-    print("xy:",xy)
+print("----------------- Secret Sharing with Arbitrary Numeric Functions -----------------")
+secretx = int(input("Enter Secret x: "))
+thresholdx = input("Enter Threshold for Retrieving x (press Enter for default): ")
+if not thresholdx:
+    thresholdx = 2
+else:
+    thresholdx = int(thresholdx)
+num_sharesx = input("Enter Number of Shares for x (press Enter for default): ")
+if not num_sharesx:
+    num_sharesx = 0
+else:
+    num_sharesx = int(num_sharesx)
 
-    # TODO: compute arbitrary functions of the two secret values
-    # operations: add, subtract and multiply with a public value, add and multiple two secret values
+secrety = int(input("Enter Secret y: "))
+thresholdy = input("Enter Threshold for Retrieving y (press Enter for default): ")
+if not thresholdy:
+    thresholdy = 2
+else:
+    thresholdy = int(thresholdy)
+num_sharesy = input("Enter Number of Shares for y (press Enter for default): ")
+if not num_sharesy:
+    num_sharesy = 0
+else:
+    num_sharesy = int(num_sharesy)
 
-    # 1. parse the string to create an operator precedence tree
-    # 2. evaluate the tree using the secrets
-    # 3. generate shares for the result
-    # 4. recover the result using the shares
+if num_sharesx == 0 or num_sharesy == 0:
+    num_sharesx = num_sharesy = max(thresholdx,thresholdy) + 5
+
+shamirx = Shamir(num_shares=num_sharesx,threshold=thresholdx)
+sharesx = shamirx.split_secret(secretx)
+shamiry = Shamir(num_shares=num_sharesy,threshold=thresholdy)
+sharesy = shamiry.split_secret(secrety)
+print(len(sharesx),len(sharesy))
+if min(len(sharesx),len(sharesy)) < max(thresholdx,thresholdy):
+    raise ValueError("The Minimum Number of Shares Should be Greater than the Maximum Threshold")
+
+shares_dict['x'] = sharesx
+shares_dict['y'] = sharesy
+
+# Example expression: 5(x^4)y+6x-2y+xy
+expression = input("Expression: ")
+root = build_parsetree(expression)
+
+result = evaluate_tree(root)
+
+print("Result: ",result)
+
+shamir_result = Shamir(num_shares=min(num_sharesx,num_sharesy),threshold=max(thresholdx,thresholdy))
+computed_secret = shamir_result.recover_secret(result,max(thresholdx,thresholdy))
+
+print("Computed Secret: ",computed_secret)

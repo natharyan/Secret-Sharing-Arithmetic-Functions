@@ -24,12 +24,12 @@ class Shamir:
         """
         # print("\nprime:",self.prime)
         if self.threshold > self.num_shares:
-            raise ValueError("The pool secret will be irrecoverable, increase threshold")
+            raise ValueError("The pool secret will be irrecoverable, increase the number of shares")
         poly = [secret] + [self._RINT(self.prime-1) for i in range(self.threshold - 1)]
-        print("\npolynomial of degree threshold-1 generated:")
-        for i in range(len(poly)-1,-1,-1):
-            print(str(poly[i]%self.prime) + 'x^' + str(i),end=" ")
-        print()
+        # print("\npolynomial of degree threshold-1 generated:")
+        # for i in range(len(poly)-1,-1,-1):
+            # print(str(poly[i]%self.prime) + 'x^' + str(i),end=" ")
+        # print()
         points = [(i,self.eval_poly(poly,i,self.prime)) for i in range(1,self.num_shares + 1)]
         return points
     
