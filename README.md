@@ -120,20 +120,7 @@ Evaluation combines operations on shares, preserving the security of secrets.
 ## Usage
 
 1. Clone the repository.
-2. Run `main.py`.
+2. Run `python src`.
 3. Enter secrets, thresholds, and an arithmetic expression.
 4. View the computed result as shares and the recovered secret.
-
----
-
-## Limitations
-
-- **Security**: Not suitable for real-world applications. No secure communication or distributed infrastructure is implemented.
-- **Performance**: Computationally expensive for large secrets or complex expressions.
-
----
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
 
