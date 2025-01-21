@@ -8,23 +8,6 @@ This project implements Shamir's Secret Sharing and integrates Beaver's Multipli
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#introduction)
-2. [File Descriptions](#file-descriptions)
-   - [main.py](#mainpy)
-   - [secret_sharing.py](#secret_sharingpy)
-   - [utils.py](#utilspy)
-3. [Theory](#theory)
-   - [Shamir's Secret Sharing](#shamirs-secret-sharing)
-   - [Beaver's Multiplication](#beavers-multiplication)
-   - [Parse Tree Construction and Evaluation](#parse-tree-construction-and-evaluation)
-4. [Usage](#usage)
-5. [Limitations](#limitations)
-6. [License](#license)
-
----
-
 ## Introduction
 
 Shamir's Secret Sharing is a cryptographic technique that divides a secret into multiple shares, requiring a threshold number of shares to reconstruct the original secret. This project extends Shamir's scheme by incorporating Beaver's Multiplication, enabling the computation of shares for arbitrary arithmetic expressions involving two secret values.
@@ -102,10 +85,35 @@ A polynomial of degree \( t-1 \) is used to encode the secret, ensuring that any
 
 ### Beaver's Multiplication
 
-Beaver's Multiplication enables the secure multiplication of two secrets \( x \) and \( y \) without revealing them. It uses a precomputed random triple \((a, b, c)\), where \( c = a \cdot b \mod p \). The steps are:
-1. Compute \( x' = x + a \) and \( y' = y + b \).
-2. Distribute \( x' \) and \( y' \).
-3. Combine precomputed shares with \( x' \) and \( y' \) to derive \( x \cdot y \).
+Beaver's Multiplication enables the secure multiplication of two secrets \( x \) and \( y \) without revealing them. It uses a precomputed random triple \(([a], [b], [ab])\), where \( ab = a \cdot b \mod p \). The multiplication works as follows:
+
+1. Compute masked values:
+   \[
+   x' = x + a \quad \text{and} \quad y' = y + b
+   \]
+
+2. The masked values \( x' \) and \( y' \) are revealed to all parties. These reveal no information about \( x \) or \( y \), as \( a \) and \( b \) are random and independent.
+
+3. After revealing \( x' \) and \( y' \), the parties compute:
+   \[
+   [xy] = (x' \cdot y') - (x' \cdot [b]) - (y' \cdot [a]) + [ab]
+   \]
+
+4. Substituting the values:
+   \[
+   [xy] = [(x + a) \cdot (y + b)] - [(x + a) \cdot b] - [(y + b) \cdot a] + ab
+   \]
+
+   Expanding and simplifying:
+   \[
+   [xy] = x \cdot y + a \cdot y + b \cdot x + ab - (x \cdot b + a \cdot b + b \cdot a + ab) + ab
+   \]
+
+   \[
+   [xy] = x \cdot y
+   \]
+
+This computation is affine-linear with respect to the secret values, meaning it can be securely implemented within a linear secret-sharing scheme.
 
 ### Parse Tree Construction and Evaluation
 
@@ -123,4 +131,3 @@ Evaluation combines operations on shares, preserving the security of secrets.
 2. Run `python src`.
 3. Enter secrets, thresholds, and an arithmetic expression.
 4. View the computed result as shares and the recovered secret.
-
