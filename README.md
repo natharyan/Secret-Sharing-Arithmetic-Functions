@@ -1,8 +1,6 @@
-# Shamir's Secret Sharing for Arbitrary Arithmetic Functions
+# Shamir's Secret Sharing for Arithmetic Functions
 
-This project implements Shamir's Secret Sharing and integrates Beaver's Multiplication to generate and compute shares for an arbitrary arithmetic function defined by the user. It is designed to explore the theoretical foundations of secret sharing and multi-party computation.
-
-> **Note:** This implementation is intended for theoretical exploration and is not fully secure for real-world applications. It does not use client-server architectures, secure communication protocols, or other measures necessary for production-level security.
+This project implements Shamir's Secret Sharing and integrates Beaver's Multiplication to generate and compute shares for an arithmetic function over two secrets.
 
 <img width="1236" alt="output" src="https://github.com/user-attachments/assets/62a022de-2846-4efd-a4f8-8320b6fcfe7f" />
 
@@ -12,25 +10,14 @@ This project implements Shamir's Secret Sharing and integrates Beaver's Multipli
 
 Shamir's Secret Sharing is a cryptographic technique that divides a secret into multiple shares, requiring a threshold number of shares to reconstruct the original secret. This project extends Shamir's scheme by incorporating Beaver's Multiplication, enabling the computation of shares for arbitrary arithmetic expressions involving two secret values.
 
-The primary goals of this project are:
-- To explore the mathematics behind secret sharing schemes.
-- To implement theoretical concepts like Beaver's Multiplication and Lagrange interpolation in Python.
-
 ---
 
 ## File Descriptions
 
 ### main.py
 
-The main file orchestrates the program by:
 - Accepting user inputs for two secrets (`x` and `y`), their thresholds, and the number of shares.
-- Parsing and evaluating an arithmetic expression involving the secrets.
-- Displaying the computed result as shares and recovering the secret using Lagrange interpolation.
-
-Key functions:
-- `shunting_yard_postfix(infix)`: Converts an infix arithmetic expression to postfix notation.
-- `build_parsetree(expression)`: Constructs a binary parse tree for the arithmetic expression.
-- `evaluate_tree(node)`: Recursively evaluates the parse tree using secret sharing operations.
+- Computes the shares of the evaluation using the shares of `x` and `y`.
 
 ### secret_sharing.py
 
@@ -45,7 +32,7 @@ Implements Shamir's Secret Sharing:
   ```math
   f(x) = a_0 + a_1x + a_2x^2 + \ldots + a_{t-1}x^{t-1} \mod p
   
-where $$\(a_0\)$$ is the secret. Shares are points $$(x_i, f(x_i))$$.
+where $a_0$ is the secret. Shares are points $$(x_i, f(x_i))$$.
 
 - **`recover_secret(shares, threshold)`**: Recovers the secret using Lagrange interpolation.
   
@@ -120,14 +107,6 @@ Beaver's Multiplication enables the secure multiplication of two secrets \(x\) a
    [xy] = x \cdot y
    ```
 
-This computation is affine-linear with respect to the secret values, meaning it can be securely implemented within a linear secret-sharing scheme.
-
-### Parse Tree Construction and Evaluation
-
-Arithmetic expressions are parsed into a binary tree:
-- Leaf nodes: Operands (public values or shares).
-- Internal nodes: Operators (+, -, *, ^).
-
 Evaluation combines operations on shares, preserving the security of secrets.
 
 ---
@@ -135,7 +114,6 @@ Evaluation combines operations on shares, preserving the security of secrets.
 ## Usage
 
 1. Clone the repository.
-2. Run `python src`.
-3. Enter secrets, thresholds, and an arithmetic expression.
-4. View the computed result as shares and the recovered secret.
+2. Run `python src/main.py`.
+3. Enter secrets, thresholds, and number of shares.
 

@@ -77,3 +77,6 @@ def _lagrange_interpolation(threshold, x_s, y_s, prime):
     # print(" ".join(coeffs))
     polynomial = " + ".join(coeffs)
     return polynomial
+
+q = 521
+prime = 2**q - 1
