@@ -1,8 +1,8 @@
 # Shamir's Secret Sharing for Arithmetic Functions
 
-This project implements Shamir's Secret Sharing and integrates Beaver's Multiplication to generate and compute shares for an arithmetic function over two secrets.
+This project implements Shamir's Secret Sharing and integrates Beaver's Multiplication to generate shares for an arithmetic function over two secrets.
 
-<img width="1236" alt="output" src="https://github.com/user-attachments/assets/62a022de-2846-4efd-a4f8-8320b6fcfe7f" />
+<img width="1284" height="407" alt="Screenshot 2025-08-01 at 11 56 58 PM" src="https://github.com/user-attachments/assets/a1e47de8-1cb6-43c7-a952-2e1910e80174" />
 
 ---
 
